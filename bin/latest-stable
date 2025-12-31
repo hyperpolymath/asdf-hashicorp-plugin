@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2024 hyperpolymath
+# asdf-hashicorp: Get the latest stable version
+
+set -euo pipefail
+
+PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/utils.bash
+source "${PLUGIN_DIR}/lib/utils.bash"
+
+FILTER="${1:-}"
+
+check_dependencies
+validate_tool "${TOOL_NAME}"
+
+latest="$(get_latest_stable)"
+
+if [[ -n "${FILTER}" ]]; then
+  echo "${latest}" | grep -E "^${FILTER}" || echo "${latest}"
+else
+  echo "${latest}"
+fi

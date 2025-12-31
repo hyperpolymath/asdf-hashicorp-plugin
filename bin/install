@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2024 hyperpolymath
+# asdf-hashicorp: Install tool to ASDF_INSTALL_PATH
+
+set -euo pipefail
+
+PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/utils.bash
+source "${PLUGIN_DIR}/lib/utils.bash"
+
+install_hashicorp_tool() {
+  local install_type="${ASDF_INSTALL_TYPE:-version}"
+  local version="${ASDF_INSTALL_VERSION:-}"
+  local install_path="${ASDF_INSTALL_PATH:-}"
+  local download_path="${ASDF_DOWNLOAD_PATH:-}"
+
+  if [[ -z "${version}" ]]; then
+    fail "ASDF_INSTALL_VERSION is required"
+  fi
+
+  if [[ -z "${install_path}" ]]; then
+    fail "ASDF_INSTALL_PATH is required"
+  fi
+
+  if [[ "${install_type}" != "version" ]]; then
+    fail "asdf-hashicorp only supports version installs, not refs"
+  fi
+
+  validate_tool "${TOOL_NAME}"
+
+  log_info "Installing ${TOOL_NAME} ${version}..."
+
+  # If download_path is not set, download here
+  if [[ -z "${download_path}" ]] || [[ ! -d "${download_path}" ]]; then
+    download_path="${install_path}/tmp_download"
+    mkdir -p "${download_path}"
+
+    log_info "Downloading ${TOOL_NAME} ${version}..."
+    local download_url archive_file
+    download_url="$(get_download_url "${version}")"
+    archive_file="${download_path}/${TOOL_NAME}.zip"
+
+    download_file "${download_url}" "${archive_file}" || fail "Failed to download ${TOOL_NAME} ${version}"
+    unzip -q -o "${archive_file}" -d "${download_path}" || fail "Failed to extract archive"
+    rm -f "${archive_file}"
+  fi
+
+  mkdir -p "${install_path}/bin"
+
+  log_info "Copying files to ${install_path}..."
+
+  # HashiCorp tools are single binaries
+  if [[ -f "${download_path}/${TOOL_NAME}" ]]; then
+    cp "${download_path}/${TOOL_NAME}" "${install_path}/bin/"
+    chmod +x "${install_path}/bin/${TOOL_NAME}"
+  elif [[ -f "${download_path}/${TOOL_NAME}.exe" ]]; then
+    cp "${download_path}/${TOOL_NAME}.exe" "${install_path}/bin/"
+  else
+    fail "Could not find ${TOOL_NAME} binary in download"
+  fi
+
+  # Clean up temp download
+  if [[ -d "${install_path}/tmp_download" ]]; then
+    rm -rf "${install_path}/tmp_download"
+  fi
+
+  # Verify installation
+  local tool_path="${install_path}/bin/${TOOL_NAME}"
+
+  if [[ ! -x "${tool_path}" ]]; then
+    fail "Installation failed: ${TOOL_NAME} not found in ${install_path}/bin"
+  fi
+
+  log_success "${TOOL_NAME} ${version} installed successfully to ${install_path}"
+
+  log_info "Installed version:"
+  "${tool_path}" version 2>&1 | head -1 || "${tool_path}" --version 2>&1 | head -1 || true
+}
+
+check_dependencies
+install_hashicorp_tool

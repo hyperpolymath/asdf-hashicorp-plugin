@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2024 hyperpolymath
+# asdf-hashicorp: Download tool to ASDF_DOWNLOAD_PATH
+
+set -euo pipefail
+
+PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/utils.bash
+source "${PLUGIN_DIR}/lib/utils.bash"
+
+download_hashicorp_tool() {
+  local install_type="${ASDF_INSTALL_TYPE:-version}"
+  local version="${ASDF_INSTALL_VERSION:-}"
+  local download_path="${ASDF_DOWNLOAD_PATH:-}"
+
+  if [[ -z "${version}" ]]; then
+    fail "ASDF_INSTALL_VERSION is required"
+  fi
+
+  if [[ -z "${download_path}" ]]; then
+    fail "ASDF_DOWNLOAD_PATH is required"
+  fi
+
+  if [[ "${install_type}" != "version" ]]; then
+    fail "asdf-hashicorp only supports version installs, not refs"
+  fi
+
+  validate_tool "${TOOL_NAME}"
+
+  log_info "Downloading ${TOOL_NAME} ${version} for $(get_arch)-$(get_platform)..."
+
+  local download_url checksum_url
+  download_url="$(get_download_url "${version}")"
+  checksum_url="$(get_checksum_url "${version}")"
+
+  log_info "URL: ${download_url}"
+
+  mkdir -p "${download_path}"
+
+  local archive_file="${download_path}/${TOOL_NAME}.zip"
+  local checksum_file="${download_path}/SHA256SUMS"
+
+  log_info "Downloading archive..."
+  download_file "${download_url}" "${archive_file}" || fail "Failed to download ${TOOL_NAME} ${version}"
+
+  if [[ "${ASDF_HASHICORP_SKIP_VERIFY:-false}" != "true" ]]; then
+    log_info "Downloading checksum..."
+    if download_file "${checksum_url}" "${checksum_file}" 2>/dev/null; then
+      log_info "Verifying checksum..."
+      verify_checksum "${archive_file}" "${checksum_file}"
+    else
+      log_warn "Checksum file not available, skipping verification"
+    fi
+  else
+    log_warn "Skipping checksum verification (ASDF_HASHICORP_SKIP_VERIFY=true)"
+  fi
+
+  log_info "Extracting archive..."
+  unzip -q -o "${archive_file}" -d "${download_path}" || fail "Failed to extract archive"
+
+  rm -f "${archive_file}" "${checksum_file}"
+
+  log_success "Download complete: ${download_path}"
+}
+
+check_dependencies
+download_hashicorp_tool
