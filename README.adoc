@@ -1,63 +1,162 @@
 = asdf-hashicorp
-
-image:https://img.shields.io/badge/License-MPL_2.0-blue.svg[MPL-2.0,link="https://opensource.org/licenses/MPL-2.0"]
-image:https://img.shields.io/badge/Philosophy-Palimpsest-purple.svg[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-licence"]
-
-
+:toc: macro
+:toclevels: 3
+:icons: font
+:source-highlighter: rouge
+:experimental:
 :author: hyperpolymath
+:revnumber: 0.1.0
 :url-asdf: https://asdf-vm.com
+:url-tool: https://img.shields.io/badge/license-PMPL--1.0-blue.svg[License,link=
 :url-repo: https://github.com/hyperpolymath/asdf-hashicorp-plugin
 
+image:https://img.shields.io/badge/license-PMPL--1.0-blue.svg[License,link="https://github.com/hyperpolymath/palimpsest-license"]
+image:https://img.shields.io/badge/Philosophy-Palimpsest-1f6feb.svg[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-license"]
 image:https://img.shields.io/github/license/hyperpolymath/asdf-hashicorp-plugin?style=flat-square[License,link=LICENSE]
+image:https://img.shields.io/github/v/release/hyperpolymath/asdf-hashicorp-plugin?style=flat-square[Release,link={url-repo}/releases]
 image:https://img.shields.io/github/actions/workflow/status/hyperpolymath/asdf-hashicorp-plugin/ci.yml?branch=main&style=flat-square[Build Status,link={url-repo}/actions]
+image:https://img.shields.io/badge/asdf-plugin-blue?style=flat-square[asdf Plugin,link={url-asdf}]
 
-An {url-asdf}[asdf] plugin to manage all HashiCorp tools.
+[.lead]
+An {url-asdf}[asdf] plugin to install and manage {url-tool}[Hashicorp] versions.
 
-== Supported Tools
+toc::[]
 
-* **vault** - Secrets management
-* **terraform** - Infrastructure as Code
-* **consul** - Service mesh
-* **nomad** - Workload orchestration
-* **packer** - Image builder
-* **vagrant** - Development environments
-* **boundary** - Secure remote access
-* **waypoint** - Application deployment
-* **sentinel** - Policy as Code
-* **consul-template** - Template rendering
-* **envconsul** - Environment variables from Consul
+== Overview
 
-== Installation
+=== What is Hashicorp?
 
-Add the plugin for each tool you need:
+Hashicorp is an upstream tool managed by this plugin. Refer to the official
+project documentation for details on usage and capabilities.
+
+=== What is asdf?
+
+{url-asdf}[asdf] is a universal version manager that allows you to manage
+multiple runtime versions with a single CLI tool.
+
+=== Why asdf-hashicorp?
+
+[cols="1,3"]
+|===
+|Feature |Benefit
+
+|**Version Switching**
+|Switch between Hashicorp versions per project
+
+|**Project Isolation**
+|Pin Hashicorp per repository via `.tool-versions`
+
+|**Reproducible Builds**
+|Align CI/CD and developer environments to the same Hashicorp version
+
+|**Cross-Platform**
+|Works on Linux and macOS, with Windows via WSL
+|===
+
+== Prerequisites
+
+=== System Requirements
+
+[cols="1,2,3"]
+|===
+|Platform |Minimum Version |Notes
+
+|**Linux**
+|Ubuntu 20.04+ / Fedora 35+ / Debian 11+
+|x86_64 and aarch64 supported
+
+|**macOS**
+|macOS 11+
+|Intel and Apple Silicon
+
+|**Windows**
+|Windows 10+ with WSL2
+|Native support planned
+|===
+
+=== Dependencies
 
 [source,bash]
 ----
-# Add individual tools
-asdf plugin add vault https://github.com/hyperpolymath/asdf-hashicorp-plugin.git
-asdf plugin add terraform https://github.com/hyperpolymath/asdf-hashicorp-plugin.git
-asdf plugin add consul https://github.com/hyperpolymath/asdf-hashicorp-plugin.git
-asdf plugin add nomad https://github.com/hyperpolymath/asdf-hashicorp-plugin.git
-asdf plugin add packer https://github.com/hyperpolymath/asdf-hashicorp-plugin.git
+# Debian/Ubuntu
+sudo apt-get update
+sudo apt-get install -y curl git
+
+# Fedora/RHEL
+sudo dnf install -y curl git
+
+# macOS (via Homebrew)
+brew install curl git
+----
+
+=== asdf Installation
+
+[source,bash]
+----
+# Clone asdf
+git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+
+# Add to your shell (bash)
+echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
+echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc
+
+# Reload your shell
+exec $SHELL
+----
+
+== Installation
+
+=== Adding the Plugin
+
+[source,bash]
+----
+asdf plugin add hashicorp https://github.com/hyperpolymath/asdf-hashicorp-plugin.git
+asdf plugin list
+----
+
+=== Installing Hashicorp Versions
+
+[source,bash]
+----
+asdf list all hashicorp
+asdf install hashicorp latest
+asdf install hashicorp 0.1.0
+----
+
+=== Setting the Version
+
+[source,bash]
+----
+asdf global hashicorp 0.1.0
+asdf local hashicorp 0.1.0
+asdf current hashicorp
+hashicorp --version
 ----
 
 == Usage
 
-[source,bash]
+=== Project Configuration
+
+[source]
 ----
-# List all available versions
-asdf list all vault
-
-# Install a specific version
-asdf install vault 1.15.0
-
-# Install latest
-asdf install terraform latest
-
-# Set global default
-asdf global vault 1.15.0
+hashicorp 0.1.0
 ----
+
+== Configuration
+
+This plugin uses standard asdf behavior. No additional configuration is
+required.
+
+== Troubleshooting
+
+* Ensure `hashicorp` is on PATH after installation.
+* Verify the installed version with `hashicorp --version`.
+* Reinstall if a cached release is corrupted.
+
+== Contributing
+
+See link:CONTRIBUTING.adoc[CONTRIBUTING] for guidelines.
 
 == License
 
-SPDX-License-Identifier: AGPL-3.0-or-later
+Palimpsest-MPL License v1.0 (PMPL-1.0)—see link:LICENSE[LICENSE].
