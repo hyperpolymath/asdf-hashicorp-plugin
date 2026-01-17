@@ -11,6 +11,7 @@ We pledge to make participation a harassment-free experience for everyone.
 * Using welcoming language
 * Being respectful of differing viewpoints
 * Accepting constructive criticism
+* Focusing on what is best for the community
 
 **Unacceptable behavior:**
 * Harassment, trolling, or personal attacks
